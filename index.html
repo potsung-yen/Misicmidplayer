@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>MIDI 純前端播放器</title>
+    <script src="https://cdn.jsdelivr.net/combine/npm/tone@14.7.77,npm/@tonejs/midi@2.0.28"></script>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 50px; background: #f4f4f9; }
+        .container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: inline-block; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 5px; }
+        #status { margin-top: 20px; color: #666; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🎹 純前端 MIDI 播放器</h2>
+    <p>直接在瀏覽器解析並演奏，不需伺服器</p>
+    <input type="file" id="file-input" accept=".mid,.midi"><br><br>
+    <button id="play-btn" disabled>播放音樂</button>
+    <div id="status">請上傳 MIDI 檔案</div>
+</div>
+
+<script>
+    const synth = new Tone.PolySynth(Tone.Synth).toDestination();
+    let currentMidi = null;
+
+    document.getElementById('file-input').onchange = async (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const arrayBuffer = await file.arrayBuffer();
+            currentMidi = new Midi(arrayBuffer);
+            document.getElementById('play-btn').disabled = false;
+            document.getElementById('status').innerText = "檔案解析成功：" + file.name;
+        }
+    };
+
+    document.getElementById('play-btn').onclick = async () => {
+        await Tone.start(); // 啟動瀏覽器音訊上下文
+        const now = Tone.now() + 0.5;
+        
+        currentMidi.tracks.forEach(track => {
+            track.notes.forEach(note => {
+                synth.triggerAttackRelease(note.name, note.duration, note.time + now, note.velocity);
+            });
+        });
+        document.getElementById('status').innerText = "正在演奏中...";
+    };
+</script>
+</body>
+</html>
