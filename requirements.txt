@@ -1,6 +1,0 @@
-streamlit
-mido
-pandas
-plotly
-pygame
-python-rtmidi
